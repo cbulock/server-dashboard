@@ -3,6 +3,7 @@ import snmp from "net-snmp";
 const OIDS = {
   sysName: "1.3.6.1.2.1.1.5.0",
   sysUpTime: "1.3.6.1.2.1.1.3.0",
+  hrSystemUptime: "1.3.6.1.2.1.25.1.1.0",
   hrMemorySize: "1.3.6.1.2.1.25.2.2.0",
   hrStorageTable: "1.3.6.1.2.1.25.2.3.1",
   hrStorageTypeFixedDisk: "1.3.6.1.2.1.25.2.1.4",
@@ -41,7 +42,12 @@ function normalizeOid(value) {
 }
 
 async function getBasicStats(session) {
-  const oids = [OIDS.sysName, OIDS.sysUpTime, OIDS.hrMemorySize];
+  const oids = [
+    OIDS.sysName,
+    OIDS.sysUpTime,
+    OIDS.hrSystemUptime,
+    OIDS.hrMemorySize,
+  ];
   return new Promise((resolve, reject) => {
     session.get(oids, (err, varbinds) => {
       if (err) return reject(err);
@@ -51,6 +57,8 @@ async function getBasicStats(session) {
         if (vb.oid === OIDS.sysName) result.sysName = String(vb.value);
         if (vb.oid === OIDS.sysUpTime)
           result.sysUpTimeTicks = toNumber(vb.value);
+        if (vb.oid === OIDS.hrSystemUptime)
+          result.hrSystemUptimeTicks = toNumber(vb.value);
         if (vb.oid === OIDS.hrMemorySize)
           result.hrMemorySizeKb = toNumber(vb.value);
       }
@@ -277,9 +285,8 @@ export async function fetchSnmpStats(server, options = {}) {
       diskPath: server.diskPath,
     });
 
-    const uptimeSeconds = basic.sysUpTimeTicks
-      ? Math.round(basic.sysUpTimeTicks / 100)
-      : null;
+    const ticks = basic.hrSystemUptimeTicks || basic.sysUpTimeTicks;
+    const uptimeSeconds = ticks ? Math.round(ticks / 100) : null;
 
     return {
       hostname: basic.sysName || server.name,

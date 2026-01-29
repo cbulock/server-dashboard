@@ -131,8 +131,7 @@ function summarizeStorage(rows, options = {}) {
 
     const isRam =
       type === OIDS.hrStorageTypeRam ||
-      descr.includes("memory") ||
-      descr.includes("ram");
+      descr === "physical memory";
 
     if (isRam) {
       totals.memory.totalBytes += totalBytes;
@@ -181,6 +180,26 @@ function summarizeStorage(rows, options = {}) {
   }
 
   function pickAuto() {
+    const unraidDisks = diskCandidates.filter((row) =>
+      /^\/mnt\/disk\d+$/i.test(row.descr || "")
+    );
+    if (unraidDisks.length) {
+      totals.disk.totalBytes = unraidDisks.reduce(
+        (sum, row) => sum + row.totalBytes,
+        0
+      );
+      totals.disk.usedBytes = unraidDisks.reduce(
+        (sum, row) => sum + row.usedBytes,
+        0
+      );
+      totals.disk.source = "sum:/mnt/disk*";
+      return {
+        totalBytes: totals.disk.totalBytes,
+        usedBytes: totals.disk.usedBytes,
+        descr: totals.disk.source,
+      };
+    }
+
     const qnapRow = findByPath(preferredPaths.qnap);
     if (qnapRow) return qnapRow;
     const unraidRow = findByPath(preferredPaths.unraid);
@@ -216,6 +235,23 @@ function summarizeStorage(rows, options = {}) {
     picked = findByPath(preferredPaths.qnap);
   } else if (profile === "unraid") {
     picked = findByPath(preferredPaths.unraid);
+    if (!picked) {
+      const disks = diskCandidates.filter((row) =>
+        /^\/mnt\/disk\d+$/i.test(row.descr || "")
+      );
+      if (disks.length) {
+        totals.disk.totalBytes = disks.reduce(
+          (sum, row) => sum + row.totalBytes,
+          0
+        );
+        totals.disk.usedBytes = disks.reduce(
+          (sum, row) => sum + row.usedBytes,
+          0
+        );
+        totals.disk.source = "sum:/mnt/disk*";
+        return totals;
+      }
+    }
   } else if (profile === "ubuntu") {
     picked = findByPath(preferredPaths.ubuntu);
   } else {

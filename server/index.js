@@ -29,7 +29,16 @@ app.get("/api/servers", async (req, res) => {
 });
 
 app.post("/api/servers", async (req, res) => {
-  const { name, host, port: serverPort, community, version, enabled } = req.body;
+  const {
+    name,
+    host,
+    port: serverPort,
+    community,
+    version,
+    enabled,
+    diskProfile,
+    diskPath,
+  } = req.body;
   if (!name || !host) {
     return res.status(400).json({ error: "name and host are required" });
   }
@@ -40,6 +49,8 @@ app.post("/api/servers", async (req, res) => {
     community,
     version,
     enabled: enabled !== false,
+    diskProfile,
+    diskPath,
   });
   res.status(201).json(server);
 });
@@ -52,7 +63,16 @@ app.get("/api/servers/:id", async (req, res) => {
 
 app.put("/api/servers/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const { name, host, port: serverPort, community, version, enabled } = req.body;
+  const {
+    name,
+    host,
+    port: serverPort,
+    community,
+    version,
+    enabled,
+    diskProfile,
+    diskPath,
+  } = req.body;
   const existing = await getServer(id);
   if (!existing) return res.status(404).json({ error: "not found" });
   if (!name || !host) {
@@ -65,6 +85,8 @@ app.put("/api/servers/:id", async (req, res) => {
     community,
     version,
     enabled: enabled !== false,
+    diskProfile,
+    diskPath,
   });
   res.json(server);
 });
@@ -89,7 +111,8 @@ app.get("/api/servers/:id/stats", async (req, res) => {
   }
 
   try {
-    const stats = await fetchSnmpStats(server);
+    const includeRaw = req.query.debug === "true";
+    const stats = await fetchSnmpStats(server, { includeRaw });
     await saveStats(id, stats);
     res.json(stats);
   } catch (err) {

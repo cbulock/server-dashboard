@@ -71,25 +71,8 @@
               <div class="stat-row">
                 <div class="label">Memory</div>
                 <div class="value">
-                  {{
-                    formatBytes(stats[server.id].memory.usedBytes)
-                  }}
-                  /
-                  {{
-                    formatBytes(stats[server.id].memory.totalBytes)
-                  }}
+                  {{ formatBytes(stats[server.id].memory.totalBytes) }}
                 </div>
-              </div>
-              <div class="meter">
-                <div
-                  class="meter-fill"
-                  :style="{
-                    width: toPercent(
-                      stats[server.id].memory.usedBytes,
-                      stats[server.id].memory.totalBytes
-                    ),
-                  }"
-                ></div>
               </div>
               <div class="stat-row">
                 <div class="label">Disk</div>
@@ -211,6 +194,20 @@
             <input type="checkbox" v-model="form.enabled" />
             <span>Enabled</span>
           </label>
+          <label>
+            Disk profile
+            <select v-model="form.diskProfile">
+              <option value="auto">Auto-detect</option>
+              <option value="qnap">QNAP (CACHEDEV1_DATA)</option>
+              <option value="unraid">Unraid (/mnt/user)</option>
+              <option value="ubuntu">Ubuntu (/)</option>
+              <option value="custom">Custom path</option>
+            </select>
+          </label>
+          <label v-if="form.diskProfile === 'custom'">
+            Disk path
+            <input v-model="form.diskPath" placeholder="/mnt/data" />
+          </label>
           <div class="modal-actions">
             <button class="ghost" type="button" @click="closeModal">
               Cancel
@@ -244,6 +241,8 @@ const emptyForm = () => ({
   community: "public",
   version: "2c",
   enabled: true,
+  diskProfile: "auto",
+  diskPath: "",
 });
 
 const form = reactive(emptyForm());
@@ -267,6 +266,8 @@ function openEdit(server) {
     community: server.community,
     version: server.version,
     enabled: !!server.enabled,
+    diskProfile: server.diskProfile || "auto",
+    diskPath: server.diskPath || "",
   });
   showModal.value = true;
 }

@@ -8,6 +8,8 @@ Small, local-only dashboard for tracking servers via SNMP. Built with Vue 3 + Vi
 - Local JSON storage for config + last stats (no native build deps)
 - Single Docker container deployment
 
+![Server Dashboard example](docs/screenshot.png)
+
 ## Requirements
 - SNMP enabled on each host (QNAP, Unraid, Ubuntu, etc.)
 - SNMP community string configured and reachable from this dashboard host

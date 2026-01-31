@@ -248,7 +248,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 
 const apiBase = import.meta.env.VITE_API_BASE || "";
 const activeTab = ref("dashboard");
@@ -258,8 +258,6 @@ const errors = reactive({});
 const showModal = ref(false);
 const editingId = ref(null);
 const busy = ref(false);
-const refreshIntervalMs = 6 * 60 * 60 * 1000;
-let refreshTimer = null;
 
 const emptyForm = () => ({
   name: "",
@@ -443,16 +441,6 @@ function typeClass(server) {
 onMounted(async () => {
   await loadServers();
   await loadCachedStats();
-  refreshTimer = setInterval(() => {
-    refreshAll();
-  }, refreshIntervalMs);
-});
-
-onBeforeUnmount(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
-  }
 });
 </script>
 

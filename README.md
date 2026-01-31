@@ -55,6 +55,19 @@ docker run -d \
 
 Open `http://localhost:3000`.
 
+## Background polling
+The API service polls SNMP on a schedule inside the container (default: every 6 hours).
+Override with minutes (minimum 1):
+
+```bash
+docker run -d \
+  --name server-dashboard \
+  -p 3000:3000 \
+  -v server-dashboard-data:/data \
+  -e POLL_INTERVAL_MINUTES=360 \
+  ghcr.io/cbulock/server-dashboard:latest
+```
+
 ## Config storage
 - JSON database stored under `/data/db.json` inside the container.
 - Data persists via the `server-dashboard-data` Docker volume.

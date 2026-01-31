@@ -16,6 +16,12 @@ import { fetchSnmpStats } from "./snmp.js";
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pollIntervalMinutes = Number(process.env.POLL_INTERVAL_MINUTES || 360);
+const safeMinutes = Number.isFinite(pollIntervalMinutes)
+  ? Math.max(1, pollIntervalMinutes)
+  : 360;
+const pollIntervalMs = safeMinutes * 60 * 1000;
+let pollInFlight = false;
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -147,3 +153,32 @@ app.get("*", (req, res) => {
 app.listen(port, () => {
   console.log(`Server dashboard listening on http://localhost:${port}`);
 });
+
+async function pollAllServers() {
+  if (pollInFlight) return;
+  pollInFlight = true;
+  try {
+    const servers = await listServers();
+    for (const server of servers) {
+      if (!server.enabled) continue;
+      try {
+        const stats = await fetchSnmpStats(server);
+        if (stats.detectedType && stats.detectedType !== server.serverType) {
+          const updated = { ...server, serverType: stats.detectedType };
+          await updateServer(server.id, updated);
+        }
+        await saveStats(server.id, stats);
+      } catch (err) {
+        // Keep polling other servers even if one fails.
+        console.warn(
+          `SNMP poll failed for ${server.name} (${server.host}):`,
+          err?.message || err
+        );
+      }
+    }
+  } finally {
+    pollInFlight = false;
+  }
+}
+
+setInterval(pollAllServers, pollIntervalMs);

@@ -36,6 +36,7 @@ app.post("/api/servers", async (req, res) => {
     community,
     version,
     enabled,
+    serverType,
     diskProfile,
     diskPath,
   } = req.body;
@@ -49,6 +50,7 @@ app.post("/api/servers", async (req, res) => {
     community,
     version,
     enabled: enabled !== false,
+    serverType,
     diskProfile,
     diskPath,
   });
@@ -70,6 +72,7 @@ app.put("/api/servers/:id", async (req, res) => {
     community,
     version,
     enabled,
+    serverType,
     diskProfile,
     diskPath,
   } = req.body;
@@ -85,6 +88,7 @@ app.put("/api/servers/:id", async (req, res) => {
     community,
     version,
     enabled: enabled !== false,
+    serverType,
     diskProfile,
     diskPath,
   });
@@ -113,6 +117,16 @@ app.get("/api/servers/:id/stats", async (req, res) => {
   try {
     const includeRaw = req.query.debug === "true";
     const stats = await fetchSnmpStats(server, { includeRaw });
+    if (
+      stats.detectedType &&
+      stats.detectedType !== server.serverType
+    ) {
+      const updated = {
+        ...server,
+        serverType: stats.detectedType,
+      };
+      await updateServer(id, updated);
+    }
     await saveStats(id, stats);
     res.json(stats);
   } catch (err) {

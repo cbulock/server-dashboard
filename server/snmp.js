@@ -3,6 +3,7 @@ import snmp from "net-snmp";
 const OIDS = {
   sysName: "1.3.6.1.2.1.1.5.0",
   sysUpTime: "1.3.6.1.2.1.1.3.0",
+  sysDescr: "1.3.6.1.2.1.1.1.0",
   hrSystemUptime: "1.3.6.1.2.1.25.1.1.0",
   hrMemorySize: "1.3.6.1.2.1.25.2.2.0",
   hrStorageTable: "1.3.6.1.2.1.25.2.3.1",
@@ -47,6 +48,7 @@ async function getBasicStats(session) {
     OIDS.sysUpTime,
     OIDS.hrSystemUptime,
     OIDS.hrMemorySize,
+    OIDS.sysDescr,
   ];
   return new Promise((resolve, reject) => {
     session.get(oids, (err, varbinds) => {
@@ -59,6 +61,7 @@ async function getBasicStats(session) {
           result.sysUpTimeTicks = toNumber(vb.value);
         if (vb.oid === OIDS.hrSystemUptime)
           result.hrSystemUptimeTicks = toNumber(vb.value);
+        if (vb.oid === OIDS.sysDescr) result.sysDescr = String(vb.value);
         if (vb.oid === OIDS.hrMemorySize)
           result.hrMemorySizeKb = toNumber(vb.value);
       }
@@ -275,6 +278,20 @@ function summarizeStorage(rows, options = {}) {
   return totals;
 }
 
+function detectServerType(storageRows, sysDescr, override) {
+  if (override && override !== "auto") return override;
+  const descr = (sysDescr || "").toLowerCase();
+  if (descr.includes("qnap")) return "qnap";
+  if (descr.includes("unraid")) return "unraid";
+  if (descr.includes("ubuntu")) return "ubuntu";
+
+  const paths = storageRows.map((row) => (row.descr || "").toLowerCase());
+  if (paths.some((p) => p === "/share/cachedev1_data")) return "qnap";
+  if (paths.some((p) => /^\/mnt\/disk\d+$/.test(p))) return "unraid";
+  if (paths.some((p) => p === "/")) return "ubuntu";
+  return "generic";
+}
+
 export async function fetchSnmpStats(server, options = {}) {
   const session = createSession(server);
   try {
@@ -291,6 +308,12 @@ export async function fetchSnmpStats(server, options = {}) {
     return {
       hostname: basic.sysName || server.name,
       uptimeSeconds,
+      sysDescr: basic.sysDescr || null,
+      detectedType: detectServerType(
+        rows,
+        basic.sysDescr,
+        server.serverType
+      ),
       memory: {
         totalBytes:
           storage.memory.totalBytes ||

@@ -112,6 +112,14 @@
               </button>
               <button class="ghost" @click="openEdit(server)">Edit</button>
             </div>
+
+            <div class="type-icon corner" :class="typeClass(server)">
+              <span
+                class="icon-mask"
+                :style="iconMaskStyle(server)"
+                aria-hidden="true"
+              ></span>
+            </div>
           </div>
         </div>
       </section>
@@ -142,6 +150,13 @@
               <button class="ghost danger" @click="removeServer(server)">
                 Delete
               </button>
+            </div>
+            <div class="type-icon corner small" :class="typeClass(server)">
+              <span
+                class="icon-mask"
+                :style="iconMaskStyle(server)"
+                aria-hidden="true"
+              ></span>
             </div>
           </div>
         </div>
@@ -189,6 +204,16 @@
           <label>
             Community
             <input v-model="form.community" placeholder="public" />
+          </label>
+          <label>
+            Server type
+            <select v-model="form.serverType">
+              <option value="auto">Auto-detect</option>
+              <option value="generic">Generic</option>
+              <option value="qnap">QNAP</option>
+              <option value="unraid">Unraid</option>
+              <option value="ubuntu">Ubuntu</option>
+            </select>
           </label>
           <label class="toggle">
             <input type="checkbox" v-model="form.enabled" />
@@ -243,6 +268,7 @@ const emptyForm = () => ({
   community: "public",
   version: "2c",
   enabled: true,
+  serverType: "auto",
   diskProfile: "auto",
   diskPath: "",
 });
@@ -268,6 +294,7 @@ function openEdit(server) {
     community: server.community,
     version: server.version,
     enabled: !!server.enabled,
+    serverType: server.serverType || "auto",
     diskProfile: server.diskProfile || "auto",
     diskPath: server.diskPath || "",
   });
@@ -381,6 +408,36 @@ function formatUptime(seconds) {
 function formatTime(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString();
+}
+
+function resolveType(server) {
+  if (server.serverType && server.serverType !== "auto") {
+    return server.serverType;
+  }
+  if (stats[server.id]?.detectedType) {
+    return stats[server.id].detectedType;
+  }
+  return "generic";
+}
+
+function iconUrl(server) {
+  const type = resolveType(server);
+  if (type === "qnap") return "/icons/qnap.svg";
+  if (type === "unraid") return "/icons/unraid.svg";
+  if (type === "ubuntu") return "/icons/ubuntu.svg";
+  return "/icons/generic.svg";
+}
+
+function iconMaskStyle(server) {
+  const url = iconUrl(server);
+  return {
+    WebkitMaskImage: `url(${url})`,
+    maskImage: `url(${url})`,
+  };
+}
+
+function typeClass(server) {
+  return `type-${resolveType(server)}`;
 }
 
 onMounted(async () => {
@@ -552,6 +609,7 @@ button:disabled {
   flex-direction: column;
   gap: 12px;
   backdrop-filter: blur(12px);
+  position: relative;
 }
 
 .card-head {
@@ -563,6 +621,83 @@ button:disabled {
 .card-title {
   font-size: 18px;
   font-weight: 600;
+}
+
+.type-icon {
+  height: 20px;
+  display: block;
+  color: #c6d2f4;
+}
+
+.icon-mask {
+  height: 100%;
+  width: 28px;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: auto 100%;
+  mask-size: auto 100%;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.type-icon.small {
+  height: 16px;
+}
+
+.type-icon.type-qnap {
+  height: 30px;
+}
+
+.type-icon.small.type-qnap {
+  height: 22px;
+}
+
+.type-icon.corner {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  opacity: 0.85;
+}
+
+.type-icon.corner.small {
+  right: 12px;
+  bottom: 10px;
+}
+
+.type-qnap {
+  color: #3d6bff;
+}
+
+.type-unraid {
+  color: #e22828;
+}
+
+.type-ubuntu {
+  color: #e95420;
+}
+
+.type-generic {
+  color: #8aa1d6;
+}
+
+.type-qnap .icon-mask {
+  width: 44px;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.type-unraid .icon-mask {
+  width: 24px;
+}
+
+.type-ubuntu .icon-mask {
+  width: 22px;
+}
+
+.type-generic .icon-mask {
+  width: 22px;
 }
 
 .muted {
@@ -663,6 +798,7 @@ button:disabled {
   align-items: center;
   padding: 10px 12px;
   border-radius: 12px;
+  position: relative;
 }
 
 .row.header {

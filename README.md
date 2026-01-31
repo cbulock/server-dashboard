@@ -42,6 +42,19 @@ docker compose up --build
 
 Open `http://localhost:3000`.
 
+## Docker (GHCR)
+Pull and run the published image:
+
+```bash
+docker run -d \
+  --name server-dashboard \
+  -p 3000:3000 \
+  -v server-dashboard-data:/data \
+  ghcr.io/cbulock/server-dashboard:latest
+```
+
+Open `http://localhost:3000`.
+
 ## Config storage
 - JSON database stored under `/data/db.json` inside the container.
 - Data persists via the `server-dashboard-data` Docker volume.

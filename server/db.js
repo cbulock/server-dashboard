@@ -54,6 +54,7 @@ export async function createServer(input) {
     community: input.community ?? "public",
     version: input.version ?? "2c",
     enabled: input.enabled ? 1 : 0,
+    serverType: input.serverType ?? "generic",
     diskProfile: input.diskProfile ?? "auto",
     diskPath: input.diskPath ?? "",
     created_at: now,
@@ -76,6 +77,7 @@ export async function updateServer(id, input) {
   server.community = input.community ?? "public";
   server.version = input.version ?? "2c";
   server.enabled = input.enabled ? 1 : 0;
+  server.serverType = input.serverType ?? "generic";
   server.diskProfile = input.diskProfile ?? "auto";
   server.diskPath = input.diskPath ?? "";
   server.updated_at = new Date().toISOString();

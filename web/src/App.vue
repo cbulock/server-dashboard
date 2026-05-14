@@ -255,6 +255,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import {
+  UBUNTU_KERNEL_MAPPINGS,
+  UNRAID_KERNEL_MAPPINGS,
+} from "./kernelMappings";
 
 const apiBase = import.meta.env.VITE_API_BASE || "";
 const activeTab = ref("dashboard");
@@ -414,9 +418,37 @@ function formatTime(value) {
   return new Date(value).toLocaleString();
 }
 
+function formatKernelMappedOs(osDescription, mappings) {
+  const normalized = String(osDescription).trim();
+  const kernelMatch = normalized.match(/\b(\d+\.\d+\.\d+)(?:-Unraid)?\b/i);
+
+  if (!kernelMatch) return normalized;
+
+  const kernelVersion = kernelMatch[1];
+  const kernelSeries =
+    kernelVersion.match(/^\d+\.\d+/)?.[0] || kernelVersion;
+  const mappedVersion =
+    mappings.exact[kernelVersion] || mappings.series[kernelSeries];
+
+  if (!mappedVersion) return normalized;
+
+  return `${mappedVersion} (${normalized})`;
+}
+
 function formatOs(osDescription) {
   if (!osDescription) return "—";
-  return String(osDescription).trim();
+  const normalized = String(osDescription).trim();
+  const lowered = normalized.toLowerCase();
+
+  if (lowered.includes("unraid")) {
+    return formatKernelMappedOs(normalized, UNRAID_KERNEL_MAPPINGS);
+  }
+
+  if (lowered.includes("ubuntu")) {
+    return formatKernelMappedOs(normalized, UBUNTU_KERNEL_MAPPINGS);
+  }
+
+  return normalized;
 }
 
 function resolveType(server) {

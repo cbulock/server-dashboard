@@ -1,0 +1,78 @@
+name: Kernel Mapping Review
+
+on:
+  schedule:
+    - cron: "0 12 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or refresh review issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import textwrap
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+
+          token = os.environ["GITHUB_TOKEN"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          title = "Review kernel mappings"
+          today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          body = textwrap.dedent(f"""\
+          ## Kernel mapping review
+
+          Scheduled reminder generated on {today}.
+
+          - [ ] Review `docs/kernel-mappings.md`
+          - [ ] Check the latest Unraid release notes for new exact kernel mappings
+          - [ ] Check the Ubuntu kernel lifecycle and generic kernel packages for family changes
+          - [ ] Update `web/src/kernelMappings.js`
+          - [ ] Run `cd web && npm run build`
+
+          If the mappings are already current, close this issue after recording that no changes were needed.
+          """)
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "User-Agent": "kernel-mapping-review-workflow",
+          }
+
+          def request(url, method="GET", payload=None):
+              data = None
+              if payload is not None:
+                  data = json.dumps(payload).encode("utf-8")
+              req = urllib.request.Request(url, data=data, method=method, headers=headers)
+              with urllib.request.urlopen(req) as response:
+                  return json.loads(response.read().decode("utf-8"))
+
+          query = urllib.parse.quote(f'repo:{repo} is:issue is:open in:title "{title}"')
+          search = request(f"https://api.github.com/search/issues?q={query}")
+          items = search.get("items", [])
+
+          if items:
+              issue_number = items[0]["number"]
+              request(
+                  f"https://api.github.com/repos/{repo}/issues/{issue_number}",
+                  method="PATCH",
+                  payload={"body": body},
+              )
+          else:
+              request(
+                  f"https://api.github.com/repos/{repo}/issues",
+                  method="POST",
+                  payload={"title": title, "body": body},
+              )
+          PY

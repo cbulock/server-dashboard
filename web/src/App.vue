@@ -65,7 +65,7 @@
               <div class="stat-row">
                 <div class="label">OS</div>
                 <div class="value">
-                  {{ formatOs(stats[server.id].sysDescr) }}
+                  {{ formatOs(stats[server.id].sysDescr, stats[server.id].detectedType) }}
                 </div>
               </div>
               <div class="stat-row">
@@ -432,20 +432,26 @@ function formatKernelMappedOs(osDescription, mappings) {
 
   if (!mappedVersion) return normalized;
 
-  return `${mappedVersion} (${normalized})`;
+  return `${mappedVersion} (Linux ${kernelVersion})`;
 }
 
-function formatOs(osDescription) {
+function formatOs(osDescription, detectedType) {
   if (!osDescription) return "—";
   const normalized = String(osDescription).trim();
   const lowered = normalized.toLowerCase();
 
-  if (lowered.includes("unraid")) {
+  if (lowered.includes("unraid") || detectedType === "unraid") {
     return formatKernelMappedOs(normalized, UNRAID_KERNEL_MAPPINGS);
   }
 
-  if (lowered.includes("ubuntu")) {
+  if (lowered.includes("ubuntu") || detectedType === "ubuntu") {
     return formatKernelMappedOs(normalized, UBUNTU_KERNEL_MAPPINGS);
+  }
+
+  if (detectedType === "qnap") {
+    const versionMatch = normalized.match(/(\d+\.\d+(?:\.\d+)*)\s*$/);
+    if (versionMatch) return `QNAP QTS ${versionMatch[1]}`;
+    return "QNAP";
   }
 
   return normalized;

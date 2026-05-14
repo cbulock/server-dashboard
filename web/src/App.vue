@@ -414,9 +414,9 @@ function formatTime(value) {
   return new Date(value).toLocaleString();
 }
 
-function formatOs(sysDescr) {
-  if (!sysDescr) return "—";
-  return String(sysDescr).trim();
+function formatOs(osDescription) {
+  if (!osDescription) return "—";
+  return String(osDescription).trim();
 }
 
 function resolveType(server) {

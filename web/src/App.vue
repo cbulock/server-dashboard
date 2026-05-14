@@ -283,8 +283,8 @@ const UNRAID_KERNEL_VERSION_MAP = {
   "6.1.63": "Unraid OS 6.12.5",
   "6.1.64": "Unraid OS 6.12.6",
   "6.1.74": "Unraid OS 6.12.8",
-  "6.1.82": "Unraid OS 6.12.9",
   "6.1.79": "Unraid OS 6.12.10",
+  "6.1.82": "Unraid OS 6.12.9",
   "6.1.99": "Unraid OS 6.12.11",
   "6.1.103": "Unraid OS 6.12.12",
   "6.1.106": "Unraid OS 6.12.13",
@@ -466,7 +466,8 @@ function formatUnraidOs(osDescription) {
   if (!kernelMatch) return normalized;
 
   const kernelVersion = kernelMatch[1];
-  const kernelSeries = kernelVersion.split(".").slice(0, 2).join(".");
+  const kernelSeries =
+    kernelVersion.match(/^\d+\.\d+/)?.[0] || kernelVersion;
   const mappedVersion =
     UNRAID_KERNEL_VERSION_MAP[kernelVersion] ||
     UNRAID_KERNEL_SERIES_MAP[kernelSeries];

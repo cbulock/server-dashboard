@@ -65,7 +65,12 @@
               <div class="stat-row">
                 <div class="label">OS</div>
                 <div class="value">
-                  {{ formatOs(stats[server.id].sysDescr, stats[server.id].detectedType) }}
+                  {{
+                    formatOs(
+                      stats[server.id].sysDescr,
+                      stats[server.id].detectedType || server.serverType
+                    )
+                  }}
                 </div>
               </div>
               <div class="stat-row">

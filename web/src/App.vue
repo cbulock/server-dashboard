@@ -63,6 +63,12 @@
                 <div class="value">{{ stats[server.id].hostname }}</div>
               </div>
               <div class="stat-row">
+                <div class="label">OS</div>
+                <div class="value">
+                  {{ formatOs(stats[server.id].sysDescr) }}
+                </div>
+              </div>
+              <div class="stat-row">
                 <div class="label">Uptime</div>
                 <div class="value">
                   {{ formatUptime(stats[server.id].uptimeSeconds) }}
@@ -406,6 +412,11 @@ function formatUptime(seconds) {
 function formatTime(value) {
   if (!value) return "—";
   return new Date(value).toLocaleString();
+}
+
+function formatOs(osDescription) {
+  if (!osDescription) return "—";
+  return String(osDescription).trim();
 }
 
 function resolveType(server) {

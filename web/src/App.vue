@@ -283,8 +283,8 @@ const UNRAID_KERNEL_VERSION_MAP = {
   "6.1.63": "Unraid OS 6.12.5",
   "6.1.64": "Unraid OS 6.12.6",
   "6.1.74": "Unraid OS 6.12.8",
-  "6.1.79": "Unraid OS 6.12.10",
   "6.1.82": "Unraid OS 6.12.9",
+  "6.1.79": "Unraid OS 6.12.10",
   "6.1.99": "Unraid OS 6.12.11",
   "6.1.103": "Unraid OS 6.12.12",
   "6.1.106": "Unraid OS 6.12.13",
@@ -306,6 +306,7 @@ const UNRAID_KERNEL_SERIES_MAP = {
   "5.19": "Unraid OS 6.11.x",
   "6.1": "Unraid OS 6.12.x",
   "6.6": "Unraid OS 7.0.x",
+  "6.12": "Unraid OS 7.1.x-7.2.x",
   "6.18": "Unraid OS 7.3.x",
 };
 
@@ -468,9 +469,7 @@ function formatUnraidOs(osDescription) {
   const kernelSeries = kernelVersion.split(".").slice(0, 2).join(".");
   const mappedVersion =
     UNRAID_KERNEL_VERSION_MAP[kernelVersion] ||
-    (kernelSeries === "6.12"
-      ? "Unraid OS 7.1.x-7.2.x"
-      : UNRAID_KERNEL_SERIES_MAP[kernelSeries]);
+    UNRAID_KERNEL_SERIES_MAP[kernelSeries];
 
   if (!mappedVersion) return normalized;
 

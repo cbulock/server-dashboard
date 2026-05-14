@@ -455,7 +455,7 @@ function formatOs(osDescription, detectedType) {
 
   if (detectedType === "qnap") {
     const versionMatch = normalized.match(/(\d+\.\d+(?:\.\d+)*)\s*$/);
-    if (versionMatch) return `QNAP QTS ${versionMatch[1]}`;
+    if (versionMatch) return `QNAP ${versionMatch[1]}`;
     return "QNAP";
   }
 

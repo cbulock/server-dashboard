@@ -255,6 +255,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import {
+  UBUNTU_KERNEL_MAPPINGS,
+  UNRAID_KERNEL_MAPPINGS,
+} from "./kernelMappings";
 
 const apiBase = import.meta.env.VITE_API_BASE || "";
 const activeTab = ref("dashboard");
@@ -264,51 +268,6 @@ const errors = reactive({});
 const showModal = ref(false);
 const editingId = ref(null);
 const busy = ref(false);
-
-const UNRAID_KERNEL_VERSION_MAP = {
-  "5.10.19": "Unraid OS 6.9.0",
-  "5.10.21": "Unraid OS 6.9.1",
-  "5.10.28": "Unraid OS 6.9.2",
-  "5.15.40": "Unraid OS 6.10.0-6.10.1",
-  "5.15.43": "Unraid OS 6.10.2",
-  "5.15.46": "Unraid OS 6.10.3",
-  "5.19.9": "Unraid OS 6.11.0",
-  "5.19.14": "Unraid OS 6.11.1",
-  "5.19.17": "Unraid OS 6.11.2-6.11.5",
-  "6.1.33": "Unraid OS 6.12.0",
-  "6.1.34": "Unraid OS 6.12.1",
-  "6.1.36": "Unraid OS 6.12.2",
-  "6.1.38": "Unraid OS 6.12.3",
-  "6.1.49": "Unraid OS 6.12.4",
-  "6.1.63": "Unraid OS 6.12.5",
-  "6.1.64": "Unraid OS 6.12.6",
-  "6.1.74": "Unraid OS 6.12.8",
-  "6.1.79": "Unraid OS 6.12.10",
-  "6.1.82": "Unraid OS 6.12.9",
-  "6.1.99": "Unraid OS 6.12.11",
-  "6.1.103": "Unraid OS 6.12.12",
-  "6.1.106": "Unraid OS 6.12.13",
-  "6.1.118": "Unraid OS 6.12.14",
-  "6.1.126": "Unraid OS 6.12.15",
-  "6.6.68": "Unraid OS 7.0.0",
-  "6.6.78": "Unraid OS 7.0.1",
-  "6.12.24": "Unraid OS 7.1.0-7.1.4",
-  "6.12.54": "Unraid OS 7.2.0-7.2.4",
-  "6.12.85": "Unraid OS 7.2.5",
-  "6.12.87": "Unraid OS 7.2.6",
-  "6.18.28": "Unraid OS 7.3.0",
-};
-
-const UNRAID_KERNEL_SERIES_MAP = {
-  "4.19": "Unraid OS 6.8.x",
-  "5.10": "Unraid OS 6.9.x",
-  "5.15": "Unraid OS 6.10.x",
-  "5.19": "Unraid OS 6.11.x",
-  "6.1": "Unraid OS 6.12.x",
-  "6.6": "Unraid OS 7.0.x",
-  "6.12": "Unraid OS 7.1.x-7.2.x",
-  "6.18": "Unraid OS 7.3.x",
-};
 
 const emptyForm = () => ({
   name: "",
@@ -459,7 +418,7 @@ function formatTime(value) {
   return new Date(value).toLocaleString();
 }
 
-function formatUnraidOs(osDescription) {
+function formatKernelMappedOs(osDescription, mappings) {
   const normalized = String(osDescription).trim();
   const kernelMatch = normalized.match(/\b(\d+\.\d+\.\d+)(?:-Unraid)?\b/i);
 
@@ -469,8 +428,7 @@ function formatUnraidOs(osDescription) {
   const kernelSeries =
     kernelVersion.match(/^\d+\.\d+/)?.[0] || kernelVersion;
   const mappedVersion =
-    UNRAID_KERNEL_VERSION_MAP[kernelVersion] ||
-    UNRAID_KERNEL_SERIES_MAP[kernelSeries];
+    mappings.exact[kernelVersion] || mappings.series[kernelSeries];
 
   if (!mappedVersion) return normalized;
 
@@ -480,9 +438,16 @@ function formatUnraidOs(osDescription) {
 function formatOs(osDescription) {
   if (!osDescription) return "—";
   const normalized = String(osDescription).trim();
-  if (normalized.toLowerCase().includes("unraid")) {
-    return formatUnraidOs(normalized);
+  const lowered = normalized.toLowerCase();
+
+  if (lowered.includes("unraid")) {
+    return formatKernelMappedOs(normalized, UNRAID_KERNEL_MAPPINGS);
   }
+
+  if (lowered.includes("ubuntu")) {
+    return formatKernelMappedOs(normalized, UBUNTU_KERNEL_MAPPINGS);
+  }
+
   return normalized;
 }
 

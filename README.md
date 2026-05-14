@@ -75,3 +75,8 @@ docker run -d \
 ## SNMP notes
 The dashboard uses standard Host-Resources MIB OIDs to get memory and storage totals.
 If a device reports storage differently, you may still see partial data for memory/disk.
+
+## Kernel mapping maintenance
+- Unraid and Ubuntu kernel mappings live in `web/src/kernelMappings.js`.
+- Follow `docs/kernel-mappings.md` for the review checklist and upstream sources.
+- A monthly GitHub Actions workflow refreshes a `Review kernel mappings` issue as a maintenance reminder.

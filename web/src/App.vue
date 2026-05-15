@@ -437,7 +437,7 @@ function formatKernelMappedOs(osDescription, mappings) {
 
   if (!mappedVersion) return normalized;
 
-  return `${mappedVersion} (Linux ${kernelVersion})`;
+  return mappedVersion;
 }
 
 function formatOs(osDescription, detectedType) {

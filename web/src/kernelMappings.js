@@ -52,7 +52,6 @@ export const UNRAID_KERNEL_MAPPINGS = {
     "5.19": "Unraid OS 6.11.x",
     "6.1": "Unraid OS 6.12.x",
     "6.6": "Unraid OS 7.0.x",
-    "6.12": "Unraid OS 7.1.x-7.2.x",
     "6.18": "Unraid OS 7.3.x",
   },
 };

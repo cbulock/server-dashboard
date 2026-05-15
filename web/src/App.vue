@@ -437,7 +437,7 @@ function formatKernelMappedOs(osDescription, mappings) {
 
   if (!mappedVersion) return normalized;
 
-  return `${mappedVersion} (Linux ${kernelVersion})`;
+  return mappedVersion;
 }
 
 function formatOs(osDescription, detectedType) {
@@ -450,6 +450,12 @@ function formatOs(osDescription, detectedType) {
   }
 
   if (lowered.includes("ubuntu") || detectedType === "ubuntu") {
+    const ubuntuReleaseMatch = normalized.match(
+      /\bUbuntu\s+(\d+\.\d+)(?:\.\d+)?\s+LTS\b/i,
+    );
+    if (ubuntuReleaseMatch) {
+      return `Ubuntu ${ubuntuReleaseMatch[1]} LTS`;
+    }
     return formatKernelMappedOs(normalized, UBUNTU_KERNEL_MAPPINGS);
   }
 

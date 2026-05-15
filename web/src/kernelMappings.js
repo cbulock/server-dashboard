@@ -61,9 +61,9 @@ export const UBUNTU_KERNEL_MAPPINGS = {
   exact: {},
   series: {
     "5.4": "Ubuntu 20.04 LTS",
-    "5.15": "Ubuntu 22.04 LTS",
-    "6.2": "Ubuntu 22.04 LTS",
-    "6.5": "Ubuntu 22.04 LTS",
+    "5.15": "Ubuntu 20.04/22.04 LTS",
+    "6.2": "Ubuntu 22.04+",
+    "6.5": "Ubuntu 22.04+",
     "6.8": "Ubuntu 24.04 LTS",
   },
 };
